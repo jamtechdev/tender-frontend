@@ -156,7 +156,7 @@ export default {
   },
 };
 export const Tendies: IncentiveContractsConfig= {
-  RewardRouter: "0xD9105a45D680c5eFb55f298FB95117a8c74e9938",
+  RewardRouter: "0x21DD3688a0bD9F4A548EBb42e7D563F50Cec9662",
   RewardDistributor: "0x705B3d2DF6e8F8E0e7007f52A7BD66086A12E9aE", 
   TND_USDC_UNISWAP_POOL: "0x3E746b61A371D952947c22fBC19f8049F000BCF6",
   UNISWAP_QUOTER: "0xb27308f9F90D607463bb33eA1BeBb41C27CE5AB6",
@@ -206,7 +206,7 @@ export const Tendies: IncentiveContractsConfig= {
       name: "Vester TND",
       symbol: "vTND",
       decimals: 18,
-      address: "0x0980Be03452364EBd9F654ca409d2C630c5AAFa3"
+      address: "0x2da1594d3642B85CD83b9e13d70756337F4c5C7e"
     }
   }
 }
