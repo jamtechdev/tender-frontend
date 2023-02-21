@@ -1,4 +1,4 @@
-import { LoaderFunction, json } from "@remix-run/node"; // or cloudflare/deno
+import { LoaderFunction, json } from "cloudflare/deno";
 import { Tendies } from "~/config/networks/arbitrum";
 
 let contract = Tendies.Tokens.TND.address
