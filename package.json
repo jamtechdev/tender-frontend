@@ -14,7 +14,7 @@
     "format": "prettier --write .",
     "generate:css": "npx tailwindcss -i ./styles/tailwind.css -o ./app/tailwind.css",
     "lint": "eslint --cache --cache-location ./node_modules/.cache/eslint .",
-    "postinstall": "remix setup node",
+    "postinstall": "remix setup remix",
     "start": "cross-env NODE_ENV=production remix-serve build",
     "test": "vitest",
     "test:e2e:dev": "start-server-and-test dev http://localhost:3000 \"cypress open\"",
