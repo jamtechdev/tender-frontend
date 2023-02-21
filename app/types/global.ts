@@ -90,6 +90,7 @@ export type Market = {
     marketSizeUsd?: string;
   };
   compSupplySpeeds?: BigNumber;
+  compBorrowSpeeds?: BigNumber;
   walletBalance: string;
   supplyBalance: number;
   supplyBalanceInUsd: number;

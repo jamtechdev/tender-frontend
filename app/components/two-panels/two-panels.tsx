@@ -8,8 +8,111 @@ import { TenderContext } from "~/contexts/tender-context";
 import { formatApy } from "~/lib/apy-calculations";
 import * as math from "mathjs";
 import DisplayPrice from "~/components/shared/DisplayPrice";
-import ESTNDAPR from "../shared/EstndApr";
-import APY from "../shared/APY";
+import APY, {  getRewards } from "../shared/APY";
+import { useTenderContext } from "~/hooks/use-tender-context";
+
+type APY_CELL_PROPS = {
+  token: Market;
+  type: "supply" | "borrow";
+  multiTooltipData: typeof initialTooltipState;
+  setMultiTooltipData: any;
+}
+
+
+const initialTooltipState = {
+  open: false,
+  coins: [{}],
+}
+
+function APY_CELL({token, type, setMultiTooltipData, multiTooltipData}: APY_CELL_PROPS) {
+  let context = useTenderContext()
+  if (!context) return null
+  let rewards = getRewards(context, type, token)
+
+return <td className="p-0">
+  <a
+    className="flex items-center h-full  relative pb-[30px] text-white font-nova font-normal md:pt-[24px] md:pb-[39px] pl-[15px] pr-[15px] text-sm md:text-base"
+    href={`/markets/${token.tokenPair.token.symbol}`}
+    target="_blank"
+    rel="noreferrer"
+  >
+    <div
+      className={`custom__hidden ${checkColorClass(parseFloat(token.marketData.depositApy))} `}
+    >
+      {rewards.totalAPY}
+    </div>
+    <div
+      tabIndex={0}
+      className="group focus:outline-none"
+      onClick={(e) => e.stopPropagation()}
+    >
+      <div className="absolute top-[25px] md:top-[61px] left-[15px] h-[22px]">
+        <div
+          onClick={() => {
+            let coins = [
+              {
+                coinTitle: token.tokenPair.token.symbol,
+                iconSrc: token.tokenPair.token.icon,
+                data: token.marketData.depositApy,
+                color: checkColorClass(
+                  parseFloat(
+                    token.marketData.depositApy
+                  )
+                ),
+              }
+            ]
+
+            if (type === "supply" && token.compSupplySpeeds ) {
+              coins.push({
+                coinTitle: "esTND",
+                iconSrc:
+                  "/images/wallet-icons/balance-icon.svg",
+                data: rewards.incentive,
+                color: "text-white",
+              })
+            } else if (type === "borrow" && token.compBorrowSpeeds ) {
+              coins.push({
+                coinTitle: "esTND",
+                iconSrc:
+                  "/images/wallet-icons/balance-icon.svg",
+                data: rewards.incentive,
+                color: "text-white",
+              })
+            }
+            setMultiTooltipData({
+              ...multiTooltipData,
+              open: window.innerWidth < 1023,
+              coins
+            })
+        }}
+          className="!flex items-center break-words bg-[#181D1B] text-[#A3AEAC] rounded-md text-[11px] text-center h-[20px] px-[5px]"
+        >
+          <img
+            aria-hidden={true}
+            className="w-[13px] h-[13px]"
+            src={token.tokenPair.token.icon}
+            alt={token.tokenPair.token.symbol}
+          />
+          <img
+            aria-hidden={true}
+            className="w-[13px] h-[13px] ml-[6px]"
+            src="/images/wallet-icons/balance-icon.svg"
+            alt="..."
+          />
+        </div>
+        <div className="hidden flex-col absolute bottom__custom items-center group-hover:hidden lg:group-hover:flex lg:group-focus:flex rounded-[10px]">
+          <div className="relative z-10 leading-none whitespace-no-wrap shadow-lg w-[100%] mx-[0px] !rounded-[10px] panel-custom">
+            <div className="flex-col w-full h-full bg-[#181D1B] shadow-lg rounded-[10px] pt-[14px] pr-[16px] pb-[14px] pl-[16px]">
+              <APY market={token} type={type} />
+            </div>
+          </div>
+          <div className="custom__arrow__tooltip relative top-[-6px] left-[0.5px] w-3 h-3 rotate-45 bg-[#181D1B]"></div>
+        </div>
+      </div>
+    </div>
+  </a>
+</td>
+}
 
 export const checkColorClass = (value: number | string) => {
   const valueNumber = parseFloat(
@@ -25,12 +128,10 @@ export const checkColorClass = (value: number | string) => {
   }
 };
 
+
 export default function TwoPanels() {
   const tenderContextData = useContext(TenderContext);
-  let [multiTooltipData, setMultiTooltipData] = useState({
-    open: false,
-    coins: [{}],
-  });
+  let [multiTooltipData, setMultiTooltipData] = useState(initialTooltipState);
 
   let [mobileTooltipData, setMobileTooltipData] = useState<{
     open: boolean;
@@ -170,79 +271,7 @@ export default function TwoPanels() {
                           </div>
                         </a>
                       </td>
-                      <td className="p-0">
-                        <a
-                          className="flex items-center h-full  relative pl-[15px] pb-[30px] text-white font-nova font-normal md:pt-[24px] md:pb-[39px] pl-[15px] pr-[15px] text-sm md:text-base"
-                          href={`/markets/${token.tokenPair.token.symbol}`}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          <div
-                            className={`custom__hidden ${checkColorClass(
-                              parseFloat(token.marketData.depositApy)
-                            )} `}
-                          >
-                            {token.marketData.depositApy}
-                          </div>
-                          <div
-                            tabIndex={0}
-                            className="group focus:outline-none"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <div className="absolute top-[25px] md:top-[61px] left-[15px] h-[22px]">
-                              <div
-                                onClick={() =>
-                                  setMultiTooltipData({
-                                    ...multiTooltipData,
-                                    open: window.innerWidth < 1023,
-                                    coins: [
-                                      {
-                                        coinTitle: token.tokenPair.token.symbol,
-                                        iconSrc: token.tokenPair.token.icon,
-                                        data: token.marketData.depositApy,
-                                        color: checkColorClass(
-                                          parseFloat(
-                                            token.marketData.depositApy
-                                          )
-                                        ),
-                                      },
-                                      {
-                                        coinTitle: "esTND",
-                                        iconSrc:
-                                          "/images/wallet-icons/balance-icon.svg",
-                                        data: "?.??%",
-                                        color: "text-white",
-                                      },
-                                    ],
-                                  })
-                                }
-                                className="!flex items-center break-words bg-[#181D1B] text-[#A3AEAC] rounded-md text-[11px] text-center h-[20px] px-[5px]"
-                              >
-                                <img
-                                  aria-hidden={true}
-                                  className="w-[13px] h-[13px]"
-                                  src={token.tokenPair.token.icon}
-                                  alt={token.tokenPair.token.symbol}
-                                />
-                                <img
-                                  aria-hidden={true}
-                                  className="w-[13px] h-[13px] ml-[6px]"
-                                  src="/images/wallet-icons/balance-icon.svg"
-                                  alt="..."
-                                />
-                              </div>
-                              <div className="hidden flex-col absolute bottom__custom items-center group-hover:hidden lg:group-hover:flex lg:group-focus:flex rounded-[10px]">
-                                <div className="relative z-10 leading-none whitespace-no-wrap shadow-lg w-[100%] mx-[0px] !rounded-[10px] panel-custom">
-                                  <div className="flex-col w-full h-full bg-[#181D1B] shadow-lg rounded-[10px] pt-[14px] pr-[16px] pb-[14px] pl-[16px]">
-                                  <APY market={token} type="borrow" />
-                                  </div>
-                                </div>
-                                <div className="custom__arrow__tooltip relative top-[-6px] left-[0.5px] w-3 h-3 rotate-45 bg-[#181D1B]"></div>
-                              </div>
-                            </div>
-                          </div>
-                        </a>
-                      </td>
+                      <APY_CELL type={"supply"} token={token} setMultiTooltipData={setMultiTooltipData} multiTooltipData={multiTooltipData} />
                       <td className="p-0">
                         <a
                           className="flex items-center h-full relative text-white font-nova font-normal pb-[30px] md:pt-[24px] md:pb-[39px] pl-[15px] pr-[20px text-sm md:text-base]"
@@ -360,79 +389,7 @@ export default function TwoPanels() {
                           </div>
                         </a>
                       </td>
-                      <td className="p-0">
-                        <a
-                          className="flex items-center h-full relative pl-[15px] pb-[30px] text-white font-nova font-normal md:pt-[24px] md:pb-[39px] pl-[15px] pr-[15px] text-sm md:text-base"
-                          href={`/markets/${token.tokenPair.token.symbol}`}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          <div
-                            className={`custom__hidden ${checkColorClass(
-                              parseFloat(token.marketData.depositApy)
-                            )} `}
-                          >
-                            {token.marketData.depositApy}
-                          </div>
-                          <div
-                            tabIndex={0}
-                            className="group focus:outline-none"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <div className="absolute top-[25px] md:top-[61px] left-[15px] h-[22px]">
-                              <div
-                                onClick={() =>
-                                  setMultiTooltipData({
-                                    ...multiTooltipData,
-                                    open: window.innerWidth < 1023,
-                                    coins: [
-                                      {
-                                        coinTitle: token.tokenPair.token.symbol,
-                                        iconSrc: token.tokenPair.token.icon,
-                                        data: token.marketData.depositApy,
-                                        color: checkColorClass(
-                                          parseFloat(
-                                            token.marketData.depositApy
-                                          )
-                                        ),
-                                      },
-                                      {
-                                        coinTitle: "esTND",
-                                        iconSrc:
-                                          "/images/wallet-icons/balance-icon.svg",
-                                        data: "?.??%",
-                                        color: "text-white",
-                                      },
-                                    ],
-                                  })
-                                }
-                                className="!flex items-center break-words bg-[#181D1B] text-[#A3AEAC] rounded-md text-[11px] text-center h-[20px] px-[5px]"
-                              >
-                                <img
-                                  aria-hidden={true}
-                                  className="w-[13px] h-[13px]"
-                                  src={token.tokenPair.token.icon}
-                                  alt={token.tokenPair.token.symbol}
-                                />
-                                <img
-                                  aria-hidden={true}
-                                  className="w-[13px] h-[13px] ml-[6px]"
-                                  src="/images/wallet-icons/balance-icon.svg"
-                                  alt="..."
-                                />
-                              </div>
-                              <div className="hidden flex-col absolute bottom__custom items-center group-hover:hidden lg:group-hover:flex lg:group-focus:flex rounded-[10px]">
-                                <div className="relative z-10 leading-none whitespace-no-wrap shadow-lg w-[100%] mx-[0px] !rounded-[10px] panel-custom">
-                                  <div className="flex-col w-full h-full bg-[#181D1B] shadow-lg rounded-[10px] pt-[14px] pr-[16px] pb-[14px] pl-[16px]">
-                                  <APY market={token} type="supply" />
-                                  </div>
-                                </div>
-                                <div className="custom__arrow__tooltip relative top-[-6px] left-[0.5px] w-3 h-3 rotate-45 bg-[#181D1B]"></div>
-                              </div>
-                            </div>
-                          </div>
-                        </a>
-                      </td>
+                      <APY_CELL type={"supply"} token={token} setMultiTooltipData={setMultiTooltipData} multiTooltipData={multiTooltipData} />
                       <td className="p-0">
                         <a
                           className="flex items-center h-full relative text-white font-nova font-normal pb-[30px] md:pt-[24px] md:pb-[39px] pl-[15px] pr-[20px text-sm md:text-base]"
@@ -557,77 +514,8 @@ export default function TwoPanels() {
                           </div>
                         </a>
                       </td>
-                      <td className="p-0">
-                        <a
-                          className="flex items-center h-full relative pl-[15px] pb-[30px] text-white font-nova font-normal md:pt-[24px] md:pb-[39px] pl-[15px] pr-[15px] text-sm md:text-base"
-                          href={`/markets/${token.tokenPair.token.symbol}`}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          <div
-                            className={`custom__hidden ${checkColorClass(
-                              parseFloat(borrowApyFormatted)
-                            )} `}
-                          >
-                            {borrowApyFormatted}
-                          </div>
-                          <div
-                            tabIndex={0}
-                            className="group  focus:outline-none"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <div className="absolute top-[25px] md:top-[61px] left-[15px] h-[22px]">
-                              <div
-                                onClick={() =>
-                                  setMultiTooltipData({
-                                    ...multiTooltipData,
-                                    open: window.innerWidth < 1023,
-                                    coins: [
-                                      {
-                                        coinTitle: token.tokenPair.token.symbol,
-                                        iconSrc: token.tokenPair.token.icon,
-                                        data: borrowApyFormatted,
-                                        color: checkColorClass(
-                                          parseFloat(borrowApyFormatted)
-                                        ),
-                                      },
-                                      {
-                                        coinTitle: "esTND",
-                                        iconSrc:
-                                          "/images/wallet-icons/balance-icon.svg",
-                                        data: "?.??%",
-                                        color: "text-white",
-                                      },
-                                    ],
-                                  })
-                                }
-                                className="!flex items-center break-words bg-[#181D1B] text-[#A3AEAC] rounded-md text-[11px] text-center h-[20px] px-[5px]"
-                              >
-                                <img
-                                  aria-hidden={true}
-                                  className="w-[13px] h-[13px]"
-                                  src={token.tokenPair.token.icon}
-                                  alt={token.tokenPair.token.symbol}
-                                />
-                                <img
-                                  aria-hidden={true}
-                                  className="w-[13px] h-[13px] ml-[6px]"
-                                  src="/images/wallet-icons/balance-icon.svg"
-                                  alt="..."
-                                />
-                              </div>
-                              <div className="hidden flex-col absolute bottom__custom items-center group-hover:hidden lg:group-hover:flex lg:group-focus:flex rounded-[10px]">
-                                <div className="relative z-10 leading-none whitespace-no-wrap shadow-lg w-[100%] mx-[0px] !rounded-[10px] panel-custom">
-                                  <div className="flex-col w-full h-full bg-[#181D1B] shadow-lg rounded-[10px] pt-[14px] pr-[16px] pb-[14px] pl-[16px]">
-                                    <APY market={token} type="supply" />
-                                  </div>
-                                </div>
-                                <div className="custom__arrow__tooltip relative top-[-6px] left-[0.5px] w-3 h-3 rotate-45 bg-[#181D1B]"></div>
-                              </div>
-                            </div>
-                          </div>
-                        </a>
-                      </td>
+                      <APY_CELL type={"supply"} token={token} setMultiTooltipData={setMultiTooltipData} multiTooltipData={multiTooltipData} />
+
                       <td className="p-0">
                         <a
                           className="flex items-center h-full relative text-white font-nova font-normal pb-[30px] md:pt-[24px] md:pb-[39px] pl-[15px] pr-[20px text-sm md:text-base]"
@@ -744,77 +632,7 @@ export default function TwoPanels() {
                           </div>
                         </a>
                       </td>
-                      <td className="p-0">
-                        <a
-                          className="flex items-center h-full relative pl-[15px] pb-[30px] text-white font-nova font-normal md:pt-[24px] md:pb-[39px] pl-[15px] pr-[15px] text-sm md:text-base"
-                          href={`/markets/${token.tokenPair.token.symbol}`}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          <div
-                            className={`custom__hidden ${checkColorClass(
-                              borrowApy
-                            )} `}
-                          >
-                            {borrowApyFormatted}
-                          </div>
-                          <div
-                            tabIndex={0}
-                            className="group  focus:outline-none"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <div className="absolute top-[25px] md:top-[61px] left-[15px] h-[22px]">
-                              <div
-                                onClick={() =>
-                                  setMultiTooltipData({
-                                    ...multiTooltipData,
-                                    open: window.innerWidth < 1023,
-                                    coins: [
-                                      {
-                                        coinTitle: token.tokenPair.token.symbol,
-                                        iconSrc: token.tokenPair.token.icon,
-                                        data: borrowApyFormatted,
-                                        color: checkColorClass(
-                                          parseFloat(borrowApyFormatted)
-                                        ),
-                                      },
-                                      {
-                                        coinTitle: "esTND",
-                                        iconSrc:
-                                          "/images/wallet-icons/balance-icon.svg",
-                                        data: "?.??%",
-                                        color: "text-white",
-                                      },
-                                    ],
-                                  })
-                                }
-                                className="!flex items-center break-words bg-[#181D1B] text-[#A3AEAC] rounded-md text-[11px] text-center h-[20px] px-[5px]"
-                              >
-                                <img
-                                  aria-hidden={true}
-                                  className="w-[13px] h-[13px]"
-                                  src={token.tokenPair.token.icon}
-                                  alt={token.tokenPair.token.symbol}
-                                />
-                                <img
-                                  aria-hidden={true}
-                                  className="w-[13px] h-[13px] ml-[6px]"
-                                  src="/images/wallet-icons/balance-icon.svg"
-                                  alt="..."
-                                />
-                              </div>
-                              <div className="hidden flex-col absolute bottom__custom items-center group-hover:hidden lg:group-hover:flex lg:group-focus:flex rounded-[10px]">
-                                <div className="relative z-10 leading-none whitespace-no-wrap shadow-lg w-[100%] mx-[0px] !rounded-[10px] panel-custom">
-                                  <div className="flex-col w-full h-full bg-[#181D1B] shadow-lg rounded-[10px] pt-[14px] pr-[16px] pb-[14px] pl-[16px]">
-                                  <APY market={token} type="supply" />
-                                  </div>
-                                </div>
-                                <div className="custom__arrow__tooltip relative top-[-6px] left-[0.5px] w-3 h-3 rotate-45 bg-[#181D1B]"></div>
-                              </div>
-                            </div>
-                          </div>
-                        </a>
-                      </td>
+                      <APY_CELL type={"supply"} token={token} setMultiTooltipData={setMultiTooltipData} multiTooltipData={multiTooltipData} />
                       <td className="p-0">
                         <a
                           className="flex items-center h-full relative text-white font-nova font-normal pb-[30px] md:pt-[24px] md:pb-[39px] pl-[15px] pr-[20px text-sm md:text-base]"
