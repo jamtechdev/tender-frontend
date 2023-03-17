@@ -1,15 +1,31 @@
-import { useEffect, useState } from "react";
-import { hooks, metaMask } from "~/connectors/meta-mask";
+import { useCallback, useEffect, useState } from "react";
+import { hooks as Web3Hooks, metaMask } from "~/connectors/meta-mask";
 import useAuth from "~/hooks/use-auth";
 import WalletDropdown from "./walletDropdown";
+import { useWeb3Signer } from "~/hooks/use-web3-signer";
 
 export default function ConnectWallet({ inMenu }: { inMenu?: boolean }) {
-  const { useAccounts, useIsActive } = hooks;
+  const { useAccounts, useIsActive } = Web3Hooks;
   const accounts = useAccounts();
   const isActive = useIsActive();
   const { connect, disconnect, isDisconnected } = useAuth();
   const [onClient, setOnClient] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
+
+  const provider = Web3Hooks.useProvider();
+  const signer = useWeb3Signer(provider);
+
+  const handleChainChanged = useCallback((ethereum: any) => {
+    ethereum.on("chainChanged", () => {
+      window.location.reload();
+    });
+  }, []);
+
+  useEffect(() => {
+    if (window.ethereum) {
+      handleChainChanged(window.ethereum);
+    }
+  }, [handleChainChanged, signer]);
 
   useEffect(() => {
     setOnClient(true);

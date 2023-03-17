@@ -16,16 +16,11 @@ import type { MetaFunction, LinksFunction } from "remix";
 import tailwindStyles from "./tailwind.css";
 import globalStyles from "./styles/global.css";
 
+import Header from "~/components/header-components/Header";
 import Footer from "~/components/Footer";
 
-import type { Web3ReactHooks } from "@web3-react/core";
-import { Web3ReactProvider } from "@web3-react/core";
-import type { MetaMask } from "@web3-react/metamask";
-
-import { hooks as metaMaskHooks, metaMask } from "~/connectors/meta-mask";
-
-import { useOnSupportedNetwork } from "./hooks/use-on-supported-network";
-import Header from "./components/header-components/Header";
+import { hooks as metaMaskHooks } from "~/connectors/meta-mask";
+import { useOnSupportedNetwork } from "~/hooks/use-on-supported-network";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: tailwindStyles },
@@ -37,8 +32,6 @@ export const meta: MetaFunction = () => {
 
 if (process.env.NODE_ENV === "production")
   LogRocket.init("6bquwn/tender-frontend");
-
-const connectors: [MetaMask, Web3ReactHooks][] = [[metaMask, metaMaskHooks]];
 
 export default function App() {
   const chainId = metaMaskHooks.useChainId();
@@ -59,10 +52,8 @@ export default function App() {
       <body className={`${!onSupportedChain ? "switch__to__network" : ""}`}>
         <div id="m"></div>
         <Toaster />
-        <Web3ReactProvider connectors={connectors}>
-          <Header />
-          <Outlet />
-        </Web3ReactProvider>
+        <Header />
+        <Outlet />
         <Footer />
         <ScrollRestoration />
         <Scripts />
