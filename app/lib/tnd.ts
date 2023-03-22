@@ -1,9 +1,10 @@
-import type { Signer, Contract, BigNumber, BigNumberish, ContractTransaction }  from "ethers";
+import type { Signer, Contract, BigNumber, BigNumberish, ContractTransaction } from "ethers";
 import type { TransactionReceipt } from "@ethersproject/providers";
 import type { IncentiveTracker, IncentiveToken } from "~/types/global";
 
 import { ethers } from "ethers";
-import  { getArbitrumOneSdk } from ".dethcrypto/eth-sdk-client";
+// import { getArbitrumOneSdk } from "@dethcrypto/eth-sdk-client";
+import { getMainnetSdk } from '@dethcrypto/eth-sdk-client'
 
 import { Tendies } from "~/config/networks/arbitrum"
 import rewardTrackerAbi from "~/config/sample-reward-tracker-abi"
@@ -24,12 +25,12 @@ const getToken = (token: IncentiveToken) => Tokens[token]
 const getTracker = (tracker: IncentiveTracker) => Trackers[tracker]
 const getTokenTracker = (token: IncentiveToken) => getTracker(getToken(token).tracker)
 
-const getTrackerContract = (contractName: IncentiveTracker, signer: Signer): Contract  => {
-  const address =  getTracker(contractName).address;
+const getTrackerContract = (contractName: IncentiveTracker, signer: Signer): Contract => {
+  const address = getTracker(contractName).address;
   return new ethers.Contract(address, rewardTrackerAbi, signer)
 }
 
-const getTokenContract = (contractName: IncentiveToken, signer: Signer): Contract  => {
+const getTokenContract = (contractName: IncentiveToken, signer: Signer): Contract => {
   const address = getToken(contractName).address;
   return new ethers.Contract(address, rewardTokenAbi, signer)
 }
@@ -88,7 +89,7 @@ export const claim = async (signer: Signer): Promise<ContractTransaction> => {
 
 export const claimEsTnd = async (signer: Signer): Promise<ContractTransaction> => {
   let sdk = getArbitrumOneSdk(signer)
-  return sdk.RewardRouter.handleRewards(true,false,true,false,false,true,true)
+  return sdk.RewardRouter.handleRewards(true, false, true, false, false, true, true)
 }
 
 export const claimFees = async (signer: Signer): Promise<ContractTransaction> => {
@@ -115,12 +116,12 @@ export async function quotePriceInUSDC(): Promise<number> {
   // try the server and fallback to coingecko
   try {
     let response = await fetch(`https://api.tender.fi/api/tnd_price`)
-    let json = await response.json() as {"usd": number}
-    return json.usd  
+    let json = await response.json() as { "usd": number }
+    return json.usd
   } catch (e) {
     let contract = Tendies.Tokens.TND.address
     let response = await fetch(`https://api.coingecko.com/api/v3/simple/token_price/arbitrum-one?contract_addresses=${contract}&vs_currencies=usd`)
-    let json = await response.json() as {[contract: string]: {"usd": number}}
+    let json = await response.json() as { [contract: string]: { "usd": number } }
     let usd = json[contract].usd
     return usd
   }
@@ -160,7 +161,7 @@ export const getAllData = async (signer: Signer) => {
     // an interval is a block
     emissionsPerBlock: sdk.sTND.tokensPerInterval(),
     stakedAmounts: sdk.sbfTND.stakedAmounts(address),
-    ethEmissionsPerSecond: sdk.EthRewardDistributor.tokensPerInterval(),  
+    ethEmissionsPerSecond: sdk.EthRewardDistributor.tokensPerInterval(),
 
     // Vester
     // claimableTND: sdk.v
@@ -169,17 +170,17 @@ export const getAllData = async (signer: Signer) => {
     claimedTND: sdk.vTND.claimedAmounts(address),
     vTNDAllowance: sdk.esTND.allowance(address, sdk.vTND.address),
     maxVestableAmount: sdk.vTND.getMaxVestableAmount(address),
-    reservedForVesting: vestedTND.then((tnd)=> sdk.vTND.getPairAmount(address, tnd))
+    reservedForVesting: vestedTND.then((tnd) => sdk.vTND.getPairAmount(address, tnd))
   }
 
   await Promise.all(Object.values(dataPromises))
- 
+
   type Datum = keyof typeof dataPromises
   let data: Record<Datum, BigNumber> = Object.create(dataPromises)
 
   // await all the promises for the return objet
   for (const [key, value] of Object.entries(dataPromises)) {
-    data[key as Datum]  = await value
+    data[key as Datum] = await value
   }
 
   return data;

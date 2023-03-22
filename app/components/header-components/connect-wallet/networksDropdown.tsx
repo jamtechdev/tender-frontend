@@ -151,7 +151,7 @@ const NetworksDropdown = () => {
           className="relative z-10 w-[34px] h-[34px] xl:h-[44px] xl:w-[auto] m-auto mr-[6px] xl:mr-[12px]"
           ref={dropdownRef}
         >
-          <button
+          {/* <button
             aria-label="Select Network"
             tabIndex={0}
             className={`group ${
@@ -191,7 +191,7 @@ const NetworksDropdown = () => {
             >
               <path d="M5.00003 0.149816C5.17925 0.149816 5.35845 0.218246 5.49508 0.354819L9.79486 4.65464C10.0684 4.92816 10.0684 5.37163 9.79486 5.64504C9.52145 5.91845 9.07807 5.91845 8.80452 5.64504L5.00003 1.84032L1.19551 5.64491C0.921987 5.91832 0.478651 5.91832 0.205262 5.64491C-0.0683924 5.37149 -0.0683923 4.92803 0.205262 4.6545L4.50497 0.354686C4.64168 0.218091 4.82087 0.149816 5.00003 0.149816Z" />
             </svg>
-          </button>
+          </button> */}
           <div
             className={`${
               isOpen ? "block" : "hidden"

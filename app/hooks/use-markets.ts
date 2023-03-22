@@ -17,7 +17,7 @@ import { providers as mcProviders } from "@0xsequence/multicall";
 import { formatUnits } from "ethers/lib/utils";
 import { useGlpApy } from "./use-glp-apy";
 import { useGmxApy } from "./use-gmx-apy";
-import  { getArbitrumOneSdk } from ".dethcrypto/eth-sdk-client";
+import { getMainnetSdk } from "@dethcrypto/eth-sdk-client";
 
 // @todo maybe refactor (remove duplicate code from tender.ts, merge changes, etc.)
 export function useMarkets(
